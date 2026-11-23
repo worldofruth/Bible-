@@ -75,6 +75,27 @@
   --hl-lilas: rgba(164, 132, 196, .32);
   color-scheme: dark;
 }
+:root[data-skin="bordeaux"] {
+  --ink: #130709;
+  --velvet: #1f0c11;
+  --velvet-2: #2b1018;
+  --line: #4a2230;
+  --text: #f5efe9;
+  --muted: #bca8a7;
+  --rose: #ee9dbb;
+  --blush: #f3c9d6;
+  --on-accent: #1c0a0e;
+  --rose-glow: rgba(238, 157, 187, .15);
+  --bar: rgba(19, 7, 9, .86);
+  --shadow: rgba(0, 0, 0, .55);
+  --hl-rose: rgba(238, 157, 187, .30);
+  --hl-peche: rgba(255, 170, 120, .28);
+  --hl-or: rgba(226, 190, 110, .30);
+  --hl-lilas: rgba(176, 142, 255, .30);
+  color-scheme: dark;
+}
+:root[data-skin="bordeaux"] body { background-image: radial-gradient(120% 70% at 50% 0%, rgba(110, 26, 40, .6), transparent 70%); background-attachment: fixed; }
+#skins .skin { font-size: 11.5px; }
 :root[data-skin="moka"] body { background-image: radial-gradient(120% 70% at 50% 0%, var(--velvet-2), transparent 70%); background-attachment: fixed; }
 * { box-sizing: border-box; }
 html, body { background: var(--ink); color: var(--text); }
@@ -208,7 +229,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 .vbar-acts .btn { margin-left: auto; padding: 9px 18px; }
 
 /* theme picker */
-.skins { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.skins { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .skin { display: grid; justify-items: center; gap: 6px; padding: 10px 4px 8px; border-radius: 14px; border: 1px solid var(--line); font-family: var(--ui); font-size: 12px; }
 .skin[aria-pressed="true"] { border-color: var(--rose); background: var(--rose-glow); }
 .skin i { width: 38px; height: 38px; border-radius: 50%; display: block; border: 1px solid var(--line); }
@@ -260,6 +281,49 @@ html:not(.js) #appBar, html:not(.js) #main { display: none; }
 :root:has(#sk-moka:checked) { --ink: #130b08; --velvet: #21140e; --velvet-2: #2d1c14; --line: #3f2a20; --text: #ecdccf; --muted: #a3897a; --rose: #cfa58c; --blush: #e2c3ab; --on-accent: #1a0f0a; --rose-glow: rgba(207, 165, 140, .14); }
 
 @media (prefers-reduced-motion: reduce) { .sheet { animation: none; } * { transition: none !important; } }
+
+/* ---------- tablette (iPad) : ne change rien sur téléphone ---------- */
+@media (min-width: 768px) {
+  .wrap { max-width: 46rem; padding-inline: 32px; }
+  .bar-in { height: 64px; }
+  .loc { font-size: 17px; }
+  .icon { width: 46px; height: 46px; }
+  .mono { width: 46px; height: 46px; font-size: 30px; }
+  .cover { padding-block: 80px 36px; }
+  .cover h1 { font-size: clamp(72px, 11vw, 112px); }
+  .cover .sub { font-size: 20px; }
+  .btn { font-size: 16px; padding: 14px 24px; }
+  .vod { max-width: 42rem; margin-inline: auto; padding: 32px 30px 26px; }
+  .vod p { font-size: 27px; }
+  .testament h2 { font-size: 32px; }
+  .book-row { padding: 16px 2px; }
+  .book-row .bn { font-size: 20px; }
+  .book-row .bc { font-size: 14px; }
+  .chaps { grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: 8px; }
+  .chaps button { height: 52px; font-size: 16px; }
+  .chapter { padding-block: 48px 32px; }
+  .ch-head h1 { font-size: clamp(40px, 5.5vw, 58px); }
+  .text { font-size: calc(var(--fs) * 1.16); line-height: 1.75; }
+  .nav-ch button { padding: 18px 22px; }
+  .nav-ch span { font-size: 21px; }
+  .sheet-head .wrap { height: 68px; }
+  .sheet-head h2 { font-size: 28px; }
+  .field { height: 48px; }
+  .field input { font-size: 18px; }
+  .hits button { padding: 18px 0; }
+  .hits .t { font-size: 19px; }
+  .pop { width: 360px; top: calc(env(safe-area-inset-top, 0px) + 74px); padding: 22px; gap: 20px; }
+  .row { font-size: 16px; }
+  .vbar { width: min(560px, calc(100vw - 48px)); }
+  .vbar .ref { font-size: 21px; }
+  .marker { width: 40px; height: 40px; }
+  .vbar-acts .btn { padding: 11px 22px; }
+}
+@media (min-width: 1024px) {
+  .wrap { max-width: 52rem; }
+  #homeIndex, #bookSheetBody { display: grid; grid-template-columns: 1fr 1fr; column-gap: 56px; align-items: start; }
+  #bookSheetBody > .testament { margin-top: 32px; }
+}
 </style>
 <style>[hidden]{display:none!important}img{max-width:100%}body{margin:0}</style>
 </head>
@@ -286,6 +350,7 @@ html:not(.js) #appBar, html:not(.js) #main { display: none; }
     <button class="skin" data-skin="noir" aria-pressed="false"><i style="background:linear-gradient(135deg,#0b0709 52%,#ff6fa9 52%)"></i>Noir rose</button>
     <button class="skin" data-skin="rose" aria-pressed="false"><i style="background:linear-gradient(135deg,#fbe8ef 52%,#d42f75 52%)"></i>Rose clair</button>
     <button class="skin" data-skin="moka" aria-pressed="false"><i style="background:linear-gradient(135deg,#21140e 52%,#cfa58c 52%)"></i>Moka</button>
+    <button class="skin" data-skin="bordeaux" aria-pressed="false"><i style="background:linear-gradient(135deg,#6e1a28 52%,#ee9dbb 52%)"></i>Bordeaux</button>
   </div>
   <div class="row"><span>Taille du texte</span>
     <div class="steps"><button id="fsDown" aria-label="Réduire le texte">A−</button><button id="fsUp" aria-label="Agrandir le texte">A+</button></div></div>
