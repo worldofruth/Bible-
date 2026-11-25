@@ -2,6 +2,9 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
+<link rel="apple-touch-icon" href="icone.png">
+<link rel="icon" type="image/png" href="icone.png">
+<meta name="apple-mobile-web-app-title" content="Sainte Bible">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Sainte Bible Rose</title>
 <style>
@@ -96,6 +99,14 @@
 }
 :root[data-skin="bordeaux"] body { background-image: radial-gradient(120% 70% at 50% 0%, rgba(110, 26, 40, .6), transparent 70%); background-attachment: fixed; }
 #skins .skin { font-size: 11.5px; }
+.pop { max-height: calc(100vh - 96px); overflow-y: auto; }
+.bk-note { margin: 0; font-family: var(--ui); font-size: 12.5px; line-height: 1.4; color: var(--muted); }
+.bk-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.bk-btns .btn { padding: 8px 14px; font-size: 13.5px; }
+#bkText { width: 100%; background: var(--velvet-2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; color: var(--text); font-family: var(--ui); font-size: 14px; outline: 0; }
+#bkText:focus { border-color: var(--rose); }
+.bk-msg { font-family: var(--ui); font-size: 13px; line-height: 1.4; color: var(--rose); }
+.bk-msg:empty { display: none; }
 :root[data-skin="moka"] body { background-image: radial-gradient(120% 70% at 50% 0%, var(--velvet-2), transparent 70%); background-attachment: fixed; }
 * { box-sizing: border-box; }
 html, body { background: var(--ink); color: var(--text); }
@@ -355,6 +366,12 @@ html:not(.js) #appBar, html:not(.js) #main { display: none; }
   <div class="row"><span>Taille du texte</span>
     <div class="steps"><button id="fsDown" aria-label="Réduire le texte">A−</button><button id="fsUp" aria-label="Agrandir le texte">A+</button></div></div>
   <div class="row"><span>Paroles de Jésus en couleur</span><button class="switch" id="wjSwitch" role="switch" aria-checked="true" aria-label="Paroles de Jésus en couleur"></button></div>
+  <div class="pop-label">Ma sauvegarde</div>
+  <p class="bk-note" id="bkWhen">Tes surlignages sont gardés sur cet appareil.</p>
+  <div class="bk-btns"><button class="btn" id="bkDl">Télécharger</button><button class="btn" id="bkCp">Copier</button><button class="btn" id="bkFileBtn">Restaurer</button></div>
+  <input type="file" id="bkFile" accept=".json,application/json,text/plain" hidden>
+  <input type="text" id="bkText" autocomplete="off" placeholder="Ou colle ici une sauvegarde copiée">
+  <div class="bk-msg" id="bkMsg" aria-live="polite"></div>
 </div>
 
 <div class="vbar" id="vbar" hidden>
@@ -2154,6 +2171,56 @@ html:not(.js) #appBar, html:not(.js) #main { display: none; }
     state.wj = !state.wj; store.set("lsg-wj", state.wj); this.setAttribute("aria-checked", String(state.wj));
     var t = $("text"); if (t) t.classList.toggle("wj-on", state.wj);
   };
+
+  /* ---------- ma sauvegarde (surlignages, thème, position) ---------- */
+  var bkPending = null;
+  function bkMsg(h) { $("bkMsg").innerHTML = h; }
+  function bkWhen() {
+    var t = store.get("lsg-bk", 0), el = $("bkWhen");
+    if (!t) { el.textContent = "Tes surlignages sont gardés sur cet appareil. Pas encore de sauvegarde."; return; }
+    var n = Math.floor((Date.now() - t) / 864e5);
+    el.textContent = "Dernière sauvegarde : " + (n === 0 ? "aujourd'hui" : n === 1 ? "hier" : "il y a " + n + " jours") + ".";
+  }
+  function bkData() {
+    var data = {};
+    try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k.indexOf("lsg-") === 0 && k !== "lsg-bk") data[k] = JSON.parse(localStorage.getItem(k)); } } catch (e) {}
+    return JSON.stringify({ app: "sainte-bible", date: new Date().toISOString(), data: data });
+  }
+  function bkDone() { store.set("lsg-bk", Date.now()); bkWhen(); }
+  function bkRestore(txt) {
+    var o = null; try { o = JSON.parse(txt); } catch (e) { o = null; }
+    if (!o || o.app !== "sainte-bible" || !o.data || typeof o.data !== "object") { bkMsg("Ce texte n'est pas une sauvegarde de la Sainte Bible. Vérifie que tu as tout copié."); return; }
+    var n = 0, hl = o.data["lsg-hl"] || {};
+    Object.keys(hl).forEach(function (b) { n += Object.keys(hl[b] || {}).length; });
+    bkPending = o;
+    bkMsg("Remplacer tes surlignages par cette sauvegarde (" + n + " verset" + (n > 1 ? "s" : "") + " surligné" + (n > 1 ? "s" : "") + ") ?<br><button class=\"btn primary\" id=\"bkYes\" style=\"margin-top:8px;padding:8px 16px\">Oui, remplacer</button>");
+  }
+  $("bkDl").onclick = function () {
+    var a = document.createElement("a"), d = new Date();
+    a.href = URL.createObjectURL(new Blob([bkData()], { type: "application/json" }));
+    a.download = "sainte-bible-sauvegarde-" + d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2) + ".json";
+    $("pop").appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+    bkDone(); bkMsg("Sauvegarde téléchargée.");
+  };
+  $("bkCp").onclick = function () {
+    var txt = bkData(), t = $("bkText");
+    function ok() { bkDone(); bkMsg("Sauvegarde copiée : colle-la dans tes Notes."); }
+    function fb() { t.value = txt; t.focus(); t.select(); try { document.execCommand("copy"); ok(); } catch (e) { bkMsg("Copie le texte affiché dans la case."); } }
+    try { navigator.clipboard.writeText(txt).then(ok, fb); } catch (e) { fb(); }
+  };
+  $("bkFileBtn").onclick = function () { $("bkFile").click(); };
+  $("bkFile").onchange = function (e) { var f = e.target.files && e.target.files[0]; if (!f) return; var r = new FileReader(); r.onload = function () { bkRestore(r.result); }; r.readAsText(f); e.target.value = ""; };
+  $("bkText").oninput = function () { if (this.value.length > 20) bkRestore(this.value); };
+  $("bkMsg").addEventListener("click", function (e) {
+    if (e.target.id !== "bkYes" || !bkPending) return;
+    try {
+      var del = []; for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k.indexOf("lsg-") === 0 && k !== "lsg-bk") del.push(k); }
+      del.forEach(function (k) { localStorage.removeItem(k); });
+      Object.keys(bkPending.data).forEach(function (k) { if (k.indexOf("lsg-") === 0 && k !== "lsg-bk") localStorage.setItem(k, JSON.stringify(bkPending.data[k])); });
+    } catch (err) {}
+    bkPending = null; bkMsg("Sauvegarde restaurée."); setTimeout(function () { location.reload(); }, 500);
+  });
+  bkWhen();
   document.addEventListener("click", function (e) {
     if (!$("pop").hidden && !e.target.closest("#pop, #setBtn")) { $("pop").hidden = true; $("setBtn").setAttribute("aria-expanded", "false"); }
   });
